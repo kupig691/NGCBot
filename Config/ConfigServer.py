@@ -15,11 +15,29 @@ def returnConfigPath():
 
 def returnConfigData():
     """
-    返回配置文件数据（YAML格式）
+    返回配置文件数据（YAML格式），优先使用.env.Config中的配置
     :return:
     """
     current_path = returnConfigPath()
+    
+    # 读取.env.Config文件
+    env_config_path = current_path + '/.env.Config'
+    env_config_data = {}
+    if os.path.exists(env_config_path):
+        with open(env_config_path, mode='r', encoding='UTF-8') as env_file:
+            for line in env_file:
+                if line.strip() and not line.startswith('#'):  # 忽略空行和注释
+                    key, value = line.strip().split('=', 1)
+                    env_config_data[key] = value.strip()
+    
+    # 读取Config.yaml文件
     configData = yaml.load(open(current_path + '/Config.yaml', mode='r', encoding='UTF-8'), yaml.Loader)
+    
+    # 合并配置，优先使用.env.Config中的值
+    for key, value in env_config_data.items():
+        if value:  # 仅当.env.Config中的值不为空时才使用
+            configData[key] = value
+    
     return configData
 
 
